@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "var.h"
 #include "function.h"
-
-#define MAX_TRAJETS 6000
+#include "utils.h"
 
 int main() {
     Trajet *trajets = (Trajet *)malloc(MAX_TRAJETS * sizeof(Trajet));
@@ -19,7 +19,7 @@ int main() {
 
         afficherMenu();
         scanf("%d", &choix);
-
+        
         switch (choix) {
             case 1:
                 afficherTous(trajets, nbTrajets);
@@ -33,10 +33,10 @@ int main() {
                 break;
             }
 
-            case 3:
+            case 3:{
                 afficherTrajetsTries(trajets, nbTrajets);
                 break;
-
+            }
             case 4: {
                 int numBus;
                 char nom[50];
@@ -50,7 +50,7 @@ int main() {
                     printf("Bus introuvable.\n");
                 } else {
                     printf("Nom du passager : ");
-                    scanf(" %49[^\n]", nom);
+                    scanf("%s", nom);
 
                     printf("Prix du billet : ");
                     scanf("%f", &prix);
@@ -80,7 +80,7 @@ int main() {
 
                     printf("Nouveau nom (laisser identique si vide) : ");
                     printf("(Entrez '.' pour garder le meme nom) : ");
-                    scanf(" %49[^\n]", nom);
+                    scanf("%s", nom);
                     if (strcmp(nom, ".") == 0) {
                          modifierPassager(&trajets[idx], id, NULL, -1);
                     } else {
@@ -103,7 +103,7 @@ int main() {
                 int j, m, a;
 
                 printf("Ville de depart : ");
-                scanf(" %49[^\n]", ville);
+                scanf("%s", ville);
 
                 printf("Date (JJ MM AAAA) : ");
                 scanf("%d %d %d", &j, &m, &a);
@@ -117,10 +117,10 @@ int main() {
                 int j, m, a;
 
                 printf("Ville depart : ");
-                scanf(" %49[^\n]", vd);
+                scanf("%s", vd);
 
                 printf("Ville arrivee : ");
-                scanf(" %49[^\n]", va);
+                scanf("%s", va);
 
                 printf("Date (JJ MM AAAA) : ");
                 scanf("%d %d %d", &j, &m, &a);
@@ -146,31 +146,6 @@ int main() {
                 printf("Operation terminee. Gain genere par redistribution/suppression : %d €\n", gain);
                 break;
             }
-
-            case 11: {
-                // Supprimer un passager
-                int numBus, id;
-                printf("Numero du bus : ");
-                scanf("%d", &numBus);
-                
-                int idx = trouverTrajet(numBus, trajets, nbTrajets);
-                if (idx == -1) {
-                    printf("Bus introuvable.\n");
-                } else {
-                    printf("ID du passager a supprimer : ");
-                    scanf("%d", &id);
-                    if (supprimerPassager(&trajets[idx], id)) {
-                        printf("Passager supprime.\n");
-                    } else {
-                        printf("Passager introuvable.\n");
-                    }
-                }
-                break;
-            }
-
-            case 12:
-                afficherTriParCA(trajets, nbTrajets);
-                break;
         }
     }
 

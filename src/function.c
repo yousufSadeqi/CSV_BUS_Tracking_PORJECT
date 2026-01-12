@@ -1,47 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "function.h"
-
-
-int lireEntier(const char *s, int *i) {
-    int val = 0;
-    while (s[*i] >= '0' && s[*i] <= '9') {
-        val = val * 10 + (s[*i] - '0');
-        (*i)++;
-    }
-    return val;
-}
-
-float lireReel(const char *s, int *i) {
-    float val = 0.0f;
-    while (s[*i] >= '0' && s[*i] <= '9') {
-        val = val * 10.0f + (s[*i] - '0');
-        (*i)++;
-    }
-    if (s[*i] == '.') {
-        (*i)++;
-        float factor = 0.1f;
-        while (s[*i] >= '0' && s[*i] <= '9') {
-            val += (s[*i] - '0') * factor;
-            factor *= 0.1f;
-            (*i)++;
-        }
-    }
-    return val;
-}
-
-
-void lireChamp(const char *s, int *i, char *dest) {
-    int k = 0;
-    while (s[*i] != ',' && s[*i] != '\0') {
-        if (k < 49) { 
-            dest[k++] = s[*i];
-        }
-        (*i)++;
-    }
-    dest[k] = '\0';
-    if (s[*i] == ',') (*i)++; 
-}
+#include "utils.h"
 
 
 Trajet lireTrajet(const char *ligne) {
@@ -121,21 +81,53 @@ int chargerTrajets(const char *nom, Trajet tab[], int max) {
 
 void afficherTrajet(const Trajet *t) {
     printf(
-        "Bus %d : %s -> %s | %02d/%02d/%04d | %04d -> %04d\n",
-        (*t).numBus,
-        (*t).villeDepart,
-        (*t).villeArrivee,
-        (*t).jour, (*t).mois, (*t).annee,
-        (*t).heureDepart,
-        (*t).heureArrivee
+        "Bus %d : %-20s -> %-20s | %02d/%02d/%04d | %04d -> %04d | Passagers: %d\n",
+        t->numBus,
+        t->villeDepart,
+        t->villeArrivee,
+        t->jour, t->mois, t->annee,
+        t->heureDepart,
+        t->heureArrivee,
+        t->nbPassagers
     );
+}
+
+void afficherTrajetComplet(const Trajet *t) {
+    printf(
+        "Bus %d : %s -> %s | %02d/%02d/%04d | %04d -> %04d\n",
+        t->numBus,
+        t->villeDepart,
+        t->villeArrivee,
+        t->jour, t->mois, t->annee,
+        t->heureDepart,
+        t->heureArrivee
+    );
+    
+    // Display passengers if any
+    if (t->nbPassagers > 0) {
+        printf("  Passagers (%d):\n", t->nbPassagers);
+        printf("  %-4s %-30s %s\n", "ID", "Nom", "Prix");
+        printf("  %s\n", "------------------------------------------------------------");
+        
+        int i = 0;
+        while (i < t->nbPassagers) {
+            printf("  %-4d %-30s %.2f EUR\n", 
+                   t->passagers[i].id, 
+                   t->passagers[i].nom, 
+                   t->passagers[i].prix);
+            i++;
+        }
+    } else {
+        printf("  Aucun passager\n");
+    }
 }
 
 
 void afficherTous(const Trajet tab[], int n) {
     for (int i = 0; i < n; i++) {
         printf("[%d] ", i + 1);
-        afficherTrajet(&tab[i]);
+        afficherTrajetComplet(&tab[i]);
+        printf("\n");
     }
 }
 
@@ -154,7 +146,6 @@ int trouverTrajet(int numBus, const Trajet tab[], int n) {
     return -1;  // pas trouvé
 }
 
-
 void afficherTrajetDepuisNumBus(int numBus, const Trajet tab[], int n) {
     int index = trouverTrajet(numBus, tab, n);
 
@@ -168,48 +159,13 @@ void afficherTrajetDepuisNumBus(int numBus, const Trajet tab[], int n) {
 
 // question 3
 
-int comparerChaines(const char *a, const char *b) {
-    int i = 0;
-
-    while (a[i] != '\0' && b[i] != '\0') {
-        if (a[i] < b[i])
-            return -1;
-        if (a[i] > b[i])
-            return 1;
-        i++;
-    }
-
-    // Si une chaîne est plus courte
-    if (a[i] == '\0' && b[i] != '\0')
-        return -1;
-    if (a[i] != '\0' && b[i] == '\0')
-        return 1;
-
-    return 0;
-}
 
 
-int comparerDates(const Trajet *t1, const Trajet *t2) {
-    if ((*t1).annee < (*t2).annee)
-        return -1;
-    if ((*t1).annee > (*t2).annee)
-        return 1;
 
-    if ((*t1).mois < (*t2).mois)
-        return -1;
-    if ((*t1).mois > (*t2).mois)
-        return 1;
 
-    if ((*t1).jour < (*t2).jour)
-        return -1;
-    if ((*t1).jour > (*t2).jour)
-        return 1;
-
-    return 0;
-}
 
 int comparerTrajets(const Trajet *t1, const Trajet *t2) {
-    int cmp = comparerChaines((*t1).villeDepart, (*t2).villeDepart);
+    int cmp = comparerChaines(t1->villeDepart, t2->villeDepart);
 
     if (cmp != 0) return cmp;
 
@@ -269,7 +225,7 @@ void trierTrajets(Trajet tab[], int n) {
 void afficherTrajetsTries(Trajet tab[], int n) {
     trierTrajets(tab, n);
 
-    printf("VOILA TRAJETS TRIES PAR VILLE DE DEPART PUIS DATE\n");
+    printf("l'affichage de tous les trajets triés par ville de départ et par date de départ\n");
 
     int i = 0;
     while (i < n) {
@@ -280,67 +236,47 @@ void afficherTrajetsTries(Trajet tab[], int n) {
 
 // question 4
 int ajouterPassager(Trajet *t, const char *nom, float prix) {
-    if ((*t).nbPassagers >= MAX_PASSAGERS)
+    if (t->nbPassagers >= MAX_PASSAGERS)
         return 0;
 
-    int id = (*t).nbPassagers + 1;
-    (*t).passagers[(*t).nbPassagers].id = id;
+    int id = t->nbPassagers + 1;
+    t->passagers[t->nbPassagers].id = id;
 
     int i = 0;
     while (nom[i] != '\0' && i < 49) { 
-        (*t).passagers[(*t).nbPassagers].nom[i] = nom[i];
+        t->passagers[t->nbPassagers].nom[i] = nom[i];
         i++;
     }
-    (*t).passagers[(*t).nbPassagers].nom[i] = '\0';
+    t->passagers[t->nbPassagers].nom[i] = '\0';
 
-    (*t).passagers[(*t).nbPassagers].prix = prix;
-    (*t).nbPassagers++;
+    t->passagers[t->nbPassagers].prix = prix;
+    t->nbPassagers++;
 
     return 1;
 }
 
-int supprimerPassager(Trajet *t, int id) {
-    int i = 0;
-
-    while (i < (*t).nbPassagers) {
-        if ((*t).passagers[i].id == id) {
-
-            int j = i;
-            while (j < (*t).nbPassagers - 1) {
-                (*t).passagers[j] = (*t).passagers[j + 1];
-                j++;
-            }
-
-            (*t).nbPassagers--;
-            return 1;
-        }
-        i++;
-    }
-
-    return 0;
-}
 
 
+// Quesiton 5
 
-//  Quesiton 5
 
 void modifierPassager(Trajet *t, int id, const char *nouveauNom, float nouveauPrix) {
     int i = 0;
 
-    while (i < (*t).nbPassagers) {
-        if ((*t).passagers[i].id == id) {
+    while (i < t->nbPassagers) {
+        if (t->passagers[i].id == id) {
 
             if (nouveauNom != NULL) {
                 int j = 0;
                 while (nouveauNom[j] != '\0' && j < 49) { 
-                    (*t).passagers[i].nom[j] = nouveauNom[j];
+                    t->passagers[i].nom[j] = nouveauNom[j];
                     j++;
                 }
-                (*t).passagers[i].nom[j] = '\0';
+                t->passagers[i].nom[j] = '\0';
             }
 
             if (nouveauPrix >= 0) {
-                (*t).passagers[i].prix = nouveauPrix;
+                t->passagers[i].prix = nouveauPrix;
             }
 
             return;
@@ -387,7 +323,7 @@ void sauvegarderTrajets(const char *nom, Trajet tab[], int n) {
 
 
 int arriveLeLendemain(const Trajet *t) {
-    return (*t).heureArrivee < (*t).heureDepart;
+    return t->heureArrivee < t->heureDepart;
 }
 
 void filtrerVilleDate(const Trajet tab[], int n, const char *ville, int j, int m, int a) {
@@ -423,14 +359,14 @@ float chiffreAffaires(const Trajet *t) {
     float recettes = 0;
     int i = 0;
 
-    while (i < (*t).nbPassagers) {
-        recettes += (*t).passagers[i].prix;
+    while (i < t->nbPassagers) {
+        recettes += t->passagers[i].prix;
         i++;
     }
 
 
-    int minDepart = ((*t).heureDepart / 100) * 60 + ((*t).heureDepart % 100);
-    int minArrivee = ((*t).heureArrivee / 100) * 60 + ((*t).heureArrivee % 100);
+    int minDepart = (t->heureDepart / 100) * 60 + (t->heureDepart % 100);
+    int minArrivee = (t->heureArrivee / 100) * 60 + (t->heureArrivee % 100);
 
     if (minArrivee < minDepart) {
         minArrivee += 24 * 60;
@@ -504,19 +440,10 @@ void afficherTriParCA(Trajet tab[], int n) {
 
 
 // Attention: qsort demande int (*)(const void*, const void*)
-int comparePassagersPrixDesc(const void *a, const void *b) {
-    const Passager *p1 = (const Passager *)a;
-    const Passager *p2 = (const Passager *)b;
-    if ((*p1).prix < (*p2).prix) return 1;
-    if ((*p1).prix > (*p2).prix) return -1;
-    return 0;
-}
 
-long unifieDateHeure(const Trajet *t) {
-    long minutes = (*t).annee * 525600 + (*t).mois * 43200 + (*t).jour * 1440 
-                   + ((*t).heureDepart / 100) * 60 + ((*t).heureDepart % 100);
-    return minutes;
-}
+
+
+
 
 int supprimerTrajetsDeficitaires(Trajet tab[], int *n) {
     float caAvant = 0;
@@ -567,7 +494,7 @@ int supprimerTrajetsDeficitaires(Trajet tab[], int *n) {
 
                 // Si trouvé, on déplace
                 if (meilleurIdx != -1) {
-                    ajouterPassager(&tab[meilleurIdx], (*pass).nom, (*pass).prix);
+                    ajouterPassager(&tab[meilleurIdx], pass->nom, pass->prix);
                 }
             }
         }
@@ -604,11 +531,6 @@ void afficherMenu() {
     printf("8 - Filtre complet (ville depart + arrivee + date)\n");
     printf("9 - Afficher chiffre d'affaires des trajets\n");
     printf("10 - Supprimer trajets deficitaires (et redistribuer)\n");
-    printf("11 - Supprimer un passager\n");
-    printf("12 - Afficher trajets tries par CA\n");
     printf("Autre - Quitter\n");
     printf("Votre choix : ");
 }
-
-
-
