@@ -1,16 +1,21 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "var.h"
 #include "function.h"
 #include "utils.h"
 
+/*
+Rôle : Point d'entrée du programme. Gère le menu principal et les appels fonctions.
+Préconditions : Fichier trajets_bus.csv accessible pour chargement
+Paramètre : Aucun
+Postconditions : L'application s'exécute et se termine normalement sur choix utilisateur ou erreur.
+Sortie :
+  - 0 si succès
+Auteur principal : Yousuf
+*/
 int main() {
-    Trajet *trajets = (Trajet *)malloc(MAX_TRAJETS * sizeof(Trajet));
-    if (!trajets) {
-        printf("Erreur allocation memoire.\n");
-        return 1;
-    }
+    Trajet *trajets = trajetsArray;    
+    
     int nbTrajets = chargerTrajets("trajets_bus.csv", trajets, MAX_TRAJETS);
 
     int choix = 1;
@@ -40,17 +45,49 @@ int main() {
             case 4: {
                 int numBus;
                 char nom[50];
+                char tampon[10];
                 float prix;
 
                 printf("Numero du bus : ");
                 scanf("%d", &numBus);
+                fgets(tampon, 10, stdin); // Vider le tampon
 
                 int idx = trouverTrajet(numBus, trajets, nbTrajets);
                 if (idx == -1) {
                     printf("Bus introuvable.\n");
                 } else {
-                    printf("Nom du passager : ");
-                    scanf("%s", nom);
+                    int valide = 0;
+                    while (!valide) {
+                        printf("Nom du passager (Prenom Nom) : ");
+                        fgets(nom, 50, stdin);
+                        
+                        // Enlever le saut de ligne
+                        int longueur = 0;
+                        while (nom[longueur] != '\0' && nom[longueur] != '\n') longueur++;
+                        if (nom[longueur] == '\n') nom[longueur] = '\0';
+                        
+                        // Compter les mots
+                        int mots = 0;
+                        int dans_mot = 0;
+                        int i = 0;
+                        while (nom[i] != '\0') {
+                            if (nom[i] != ' ') {
+                                if (!dans_mot) {
+                                    mots++;
+                                    dans_mot = 1;
+                                }
+                            } else {
+                                dans_mot = 0;
+                            }
+                            i++;
+                        }
+                        
+                        if (mots == 2) {
+                            valide = 1;
+                        } else {
+                            printf("Erreur: Veuillez entrer exactement 2 mots (Prenom Nom). Reessayez.\n");
+                        }
+                    }
 
                     printf("Prix du billet : ");
                     scanf("%f", &prix);
@@ -78,7 +115,7 @@ int main() {
                     printf("ID du passager : ");
                     scanf("%d", &id);
 
-                    printf("Nouveau nom (laisser identique si vide) : ");
+                    printf("Nouveau nom : ");
                     printf("(Entrez '.' pour garder le meme nom) : ");
                     scanf("%s", nom);
                     if (strcmp(nom, ".") == 0) {
@@ -133,9 +170,14 @@ int main() {
                 // Afficher chiffre d'affaires (simple liste)
                 int i = 0;
                 while (i < nbTrajets) {
-                    printf("Bus %d : Chiffre d'affaires = %.2f €\n",
-                           trajets[i].numBus,
-                           chiffreAffaires(&trajets[i]));
+                    float ca = chiffreAffaires(&trajets[i]);
+                    
+                    if (ca == CA_INVALIDE) {
+                        printf("Bus %d : Calcul invalide - horaire manquant\n", trajets[i].numBus);
+                    } else {
+                        printf("Bus %d : Chiffre d'affaires = %.2f €\n", trajets[i].numBus, ca);
+                    }
+                    
                     i++;
                 }
                 break;
@@ -150,6 +192,5 @@ int main() {
     }
 
     printf("Fin du programme.\n");
-    free(trajets);
     return 0;
 }

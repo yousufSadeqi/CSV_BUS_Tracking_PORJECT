@@ -2,95 +2,190 @@
 #include <stdlib.h>
 #include "utils.h"
 
+/*
+Rôle : Lit un entier depuis une chaîne de caractères à partir d'un index donné.
+Préconditions : s != NULL, i != NULL
+Paramètre : s (chaîne source), i (pointeur vers l'index courant)
+Postconditions : L'index i est avancé après le nombre lu.
+Sortie :
+  - L'entier lu
+  - -1 si le champ est vide
+Auteur principal : Yousuf
+*/
 int lireEntier(const char *s, int *i) {
+    // Champ vide : retourner -1
+    if (s[*i] == ',' || s[*i] == '\0' || s[*i] == '\n') {
+        return -1; 
+    }
+    
     int val = 0;
     while (s[*i] >= '0' && s[*i] <= '9') {
         val = val * 10 + (s[*i] - '0');
-        (*i)++;
+        *i = *i + 1;
     }
     return val;
 }
 
+/*
+Rôle : Lit un nombre réel (float) depuis une chaîne de caractères.
+Préconditions : s != NULL, i != NULL
+Paramètre : s (chaîne source), i (pointeur vers l'index courant)
+Postconditions : L'index i est avancé après le nombre lu.
+Sortie :
+  - Le réel lu
+  - -1.0 si le champ est vide
+Auteur principal : Yousuf
+*/
 float lireReel(const char *s, int *i) {
+    // Champ vide : retourner -1.0
+    if (s[*i] == ',' || s[*i] == '\0' || s[*i] == '\n' || s[*i] == ':') {
+        return -1.0f; 
+    }
+    
     float val = 0.0f;
+    // Partie entiere
     while (s[*i] >= '0' && s[*i] <= '9') {
         val = val * 10.0f + (s[*i] - '0');
-        (*i)++;
+        *i = *i + 1;
     }
+    // Partie decimale
     if (s[*i] == '.') {
-        (*i)++;
+        *i = *i + 1;
         float factor = 0.1f;
         while (s[*i] >= '0' && s[*i] <= '9') {
             val += (s[*i] - '0') * factor;
             factor *= 0.1f;
-            (*i)++;
+            *i = *i + 1;
         }
     }
     return val;
 }
 
-
+/*
+Rôle : Lit une chaîne de caractères jusqu'au prochain délimiteur (virgule).
+Préconditions : s != NULL, i != NULL, dest != NULL (taille min 50)
+Paramètre : s (chaîne source), i (pointeur vers l'index courant), dest (buffer de destination pour la chaîne lue)
+Postconditions : dest contient la chaîne lue, l'index i est avancé.
+Sortie : Aucune (void)
+Auteur principal : Yousuf
+*/
 void lireChamp(const char *s, int *i, char *dest) {
     int k = 0;
     while (s[*i] != ',' && s[*i] != '\0') {
         if (k < 49) { 
-            dest[k++] = s[*i];
+            dest[k] = s[*i];
+            k = k + 1;
         }
-        (*i)++;
+        *i = *i + 1;
     }
     dest[k] = '\0';
-    if (s[*i] == ',') (*i)++; 
+    if (s[*i] == ',') {
+        *i = *i + 1;
+    }
 }
 
-
+/*
+Rôle : Compare deux chaînes de caractères (ordre lexicographique).
+Préconditions : a != NULL, b != NULL
+Paramètre : a (première chaîne), b (deuxième chaîne)
+Postconditions : Aucune modification des chaînes.
+Sortie :
+  - -1 si a < b
+  - 1 si a > b
+  - 0 si a == b
+Auteur principal : Yousuf
+*/
 int comparerChaines(const char *a, const char *b) {
     int i = 0;
 
     while (a[i] != '\0' && b[i] != '\0') {
-        if (a[i] < b[i])
+        if (a[i] < b[i]) {
             return -1;
-        if (a[i] > b[i])
+        }
+        if (a[i] > b[i]) {
             return 1;
-        i++;
+        }
+        i = i + 1;
     }
 
-    // Si une chaîne est plus courte
-    if (a[i] == '\0' && b[i] != '\0')
+    if (a[i] == '\0' && b[i] != '\0') {
         return -1;
-    if (a[i] != '\0' && b[i] == '\0')
+    }
+    if (a[i] != '\0' && b[i] == '\0') {
         return 1;
+    }
 
     return 0;
 }
 
-
+/*
+Rôle : Compare les dates de deux trajets (chronologique).
+Préconditions : t1 != NULL, t2 != NULL
+Paramètre : t1 (premier trajet), t2 (deuxième trajet)
+Postconditions : Aucune.
+Sortie :
+  - -1 si t1 est avant t2
+  - 1 si t1 est après t2
+  - 0 si même date
+Auteur principal : Yousuf
+*/
 int comparerDates(const Trajet *t1, const Trajet *t2) {
-    if (t1->annee < t2->annee)
+    if (t1->annee < t2->annee) {
         return -1;
-    if (t1->annee > t2->annee)
+    }
+    if (t1->annee > t2->annee) {
         return 1;
+    }
 
-    if (t1->mois < t2->mois)
+    if (t1->mois < t2->mois) {
         return -1;
-    if (t1->mois > t2->mois)
+    }
+    if (t1->mois > t2->mois) {
         return 1;
+    }
 
-    if (t1->jour < t2->jour)
+    if (t1->jour < t2->jour) {
         return -1;
-    if (t1->jour > t2->jour)
+    }
+    if (t1->jour > t2->jour) {
         return 1;
+    }
 
     return 0;
 }
 
+/*
+Rôle : Fonction de comparaison pour trier les passagers par prix décroissant.
+Préconditions : a != NULL, b != NULL
+Paramètre : a (pointeur vers passager 1), b (pointeur vers passager 2)
+Postconditions : Aucune.
+Sortie :
+  - 1 si prix a < prix b (pour tri décroissant)
+  - -1 si prix a > prix b
+  - 0 si prix égaux
+Auteur principal : Yousuf
+*/
 int comparePassagersPrixDesc(const void *a, const void *b) {
     const Passager *p1 = (const Passager *)a;
     const Passager *p2 = (const Passager *)b;
-    if (p1->prix < p2->prix) return 1;
-    if (p1->prix > p2->prix) return -1;
+    if (p1->prix < p2->prix){
+        return 1;
+    } 
+    if (p1->prix > p2->prix) {
+        return -1;
+    }
     return 0;
 }
 
+/*
+Rôle : Convertit la date et l'heure d'un trajet en un entier unique (minutes).
+Préconditions : t != NULL
+Paramètre : t (trajet)
+Postconditions : Aucune.
+Sortie :
+  - Nombre de minutes écoulées depuis l'an 0 (approximatif pour comparaison)
+Auteur principal : Yousuf
+*/
 long unifieDateHeure(const Trajet *t) {
     long minutes = t->annee * 525600 + t->mois * 43200 + t->jour * 1440 
                    + (t->heureDepart / 100) * 60 + (t->heureDepart % 100);

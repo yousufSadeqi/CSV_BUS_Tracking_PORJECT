@@ -3,6 +3,7 @@
 
 #define MAX_PASSAGERS 55
 #define MAX_TRAJETS 6000
+#define CA_INVALIDE 1e9f
 
 typedef struct {
     int id;
@@ -22,5 +23,9 @@ typedef struct {
     Passager passagers[MAX_PASSAGERS];
     int nbPassagers;
 } Trajet;
+
+// Global arrays (defined in globals.c)
+extern Trajet trajetsArray[MAX_TRAJETS];
+extern Trajet tempArray[MAX_TRAJETS];
 
 #endif
