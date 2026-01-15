@@ -20,10 +20,15 @@ int main() {
 
     int choix = 1;
 
-    while (choix >= 1 && choix <= 12) {
-
+    while (choix >= 1 && choix <= 11) {
         afficherMenu();
-        scanf("%d", &choix);
+        if (scanf("%d", &choix) != 1) {
+            // oblige d'utiliser pour vider le buffer d'autre choix c'etais d'utiliser getchar() 
+            scanf("%*s");
+            printf("Erreur: Veuillez entrer un nombre valide.\n");
+            choix = 1; // Continuer la boucle
+            continue;
+        }
         
         switch (choix) {
             case 1:
@@ -188,6 +193,14 @@ int main() {
                 printf("Operation terminee. Gain genere par redistribution/suppression : %d €\n", gain);
                 break;
             }
+            
+            case 11:
+                printf("Au revoir!\n");
+                break;
+            
+            default:
+                printf("Choix invalide. Veuillez entrer un nombre entre 1 et 11.\n");
+                break;
         }
     }
 
