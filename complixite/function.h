@@ -27,11 +27,12 @@ int comparerTrajets(const Trajet *t1, const Trajet *t2);
 // Tri
 void trierTrajets(Trajet tab[], int n);
 void afficherTrajetsTries(Trajet tab[], int n);
+void triRapideRec(Trajet tab[], int deb, int fin);
 
 // Gestion des passagers 
 
 int ajouterPassager(Trajet *t, const char *nom, float prix);
-void modifierPassager(Trajet *t, int id, char *nouveauNom, float nouveauPrix);
+void modifierPassager(Trajet *t, int id, const char *nouveauNom, float nouveauPrix);
 
 // Sauvegarde 
 

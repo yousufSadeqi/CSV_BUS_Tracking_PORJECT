@@ -28,5 +28,6 @@ typedef struct {
 // Global arrays (defined in globals.c)
 extern Trajet trajetsArray[MAX_TRAJETS];
 extern Trajet tempArray[MAX_TRAJETS];
+extern long nbOperations;
 
 #endif

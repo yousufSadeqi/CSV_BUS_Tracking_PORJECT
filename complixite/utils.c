@@ -14,14 +14,25 @@ Auteur principal : SADEQI Muhammad Yousuf
 */
 int lireEntier(const char *s, int *i) {
     // Champ vide : retourner -1
+    nbOperations += 8;
     if (s[*i] == ',' || s[*i] == '\0' || s[*i] == '\n') {
         return -1; 
     }
-    
     int val = 0;
+    nbOperations ++; // affectation
     while (s[*i] >= '0' && s[*i] <= '9') {
+        nbOperations += 5;
         val = val * 10 + (s[*i] - '0');
+
+        nbOperations += 5; 
         *i = *i + 1;
+
+        nbOperations+=2; // incrementation sans *i dereference
+    }
+    if(s[*i] >= '0'){
+        nbOperations += 5; // parce que si s[*i] >= '0' est vrai, on compte 5 ops
+    }else{
+        nbOperations += 2; // parce que si s[*i] >= '0' est faux, on compte 2 ops
     }
     return val;
 }
@@ -97,20 +108,38 @@ Auteur principal : SADEQI Muhammad Yousuf
 */
 int comparerChaines(const char *a, const char *b) {
     int i = 0;
-
+    nbOperations ++; // affectation
+    // access tab * 2 + compairson * 2 + && = 5 ops   
     while (a[i] != '\0' && b[i] != '\0') {
+        nbOperations += 5; 
+        
+        // access tab * 2 + compairson = 3 ops
+        nbOperations += 3;
         if (a[i] < b[i]) {
             return -1;
         }
+        
+        // access tab * 2 + compairson = 3 ops
+        nbOperations += 3;
         if (a[i] > b[i]) {
             return 1;
         }
+        
         i = i + 1;
+        nbOperations+=2; // incrementation
+    }
+    if(a[i] != '\0'){
+        nbOperations += 5; // si a[i] != '\0' est vrai alors on compte 5 
+    }else{
+        nbOperations += 2; // si a[i] != '\0' est vrai alors on compte 2 car boucle s'arrete 
     }
 
+    nbOperations += 5; // On compte au moins a[i] == 0 (2) + check &&
     if (a[i] == '\0' && b[i] != '\0') {
         return -1;
     }
+    
+    nbOperations += 5;
     if (a[i] != '\0' && b[i] == '\0') {
         return 1;
     }
@@ -130,27 +159,31 @@ Sortie :
 Auteur principal : SADEQI Muhammad Yousuf
 */
 int comparerDates(const Trajet *t1, const Trajet *t2) {
+
+    nbOperations++; // comparison sans compter déréférencement de t1 et t2
     if (t1->annee < t2->annee) {
         return -1;
     }
+    nbOperations++; // comparison
     if (t1->annee > t2->annee) {
-        return 1;
+         return 1;
     }
-
+    nbOperations++; // comparison
     if (t1->mois < t2->mois) {
-        return -1;
+         return -1;
     }
+    nbOperations++; // comparison
     if (t1->mois > t2->mois) {
-        return 1;
+         return 1;
     }
-
+    nbOperations++; // comparison
     if (t1->jour < t2->jour) {
-        return -1;
+         return -1;
     }
+    nbOperations++; // comparison
     if (t1->jour > t2->jour) {
-        return 1;
+         return 1;
     }
-
     return 0;
 }
 
@@ -168,9 +201,13 @@ Auteur principal : SADEQI Muhammad Yousuf
 int comparePassagersPrixDesc(const void *a, const void *b) {
     const Passager *p1 = (const Passager *)a;
     const Passager *p2 = (const Passager *)b;
+    nbOperations+=2; // affectation * 2 sans compter déréférencement de p1 et p2
+
+    nbOperations++; // comparison sans compter déréférencement de p1 et p2
     if (p1->prix < p2->prix){
         return 1;
     } 
+    nbOperations++; // comparison sans compter déréférencement de p1 et p2
     if (p1->prix > p2->prix) {
         return -1;
     }
@@ -187,45 +224,8 @@ Sortie :
 Auteur principal : SADEQI Muhammad Yousuf
 */
 long unifieDateHeure(const Trajet *t) {
+    nbOperations += 16; // acces champ (mois, jour, heureDepart, heureArrivee) + multiplication * 3 + addition * 3 + division * 2 + modulo * 2
     long minutes = t->annee * 525600 + t->mois * 43200 + t->jour * 1440 
                    + (t->heureDepart / 100) * 60 + (t->heureDepart % 100);
     return minutes;
-}
-
-/*
-Rôle : Lit et valide un nom complet (Nom Prenom) avec exactement 2 mots.
-Préconditions : nom != NULL, taille > 0
-Paramètre : nom (buffer destination), taille (taille du buffer)
-Postconditions : nom contient le nom validé sans saut de ligne.
-Sortie :
-  - 1 si succès (nom valide avec 2 mots)
-  - 0 si échec (nom invalide)
-Auteur principal : SADEQI Muhammad Yousuf
-*/
-int lireNomComplet(char *nom, int taille) {
-    scanf(" ");  // Skip whitespace
-    fgets(nom, taille, stdin);
-    
-    // Enlever le saut de ligne
-    int longueur = 0;
-    while (nom[longueur] != '\0' && nom[longueur] != '\n') longueur++;
-    if (nom[longueur] == '\n') nom[longueur] = '\0';
-    
-    // Compter les mots
-    int mots = 0;
-    int dans_mot = 0;
-    int i = 0;
-    while (nom[i] != '\0') {
-        if (nom[i] != ' ') {
-            if (!dans_mot) {
-                mots++;
-                dans_mot = 1;
-            }
-        } else {
-            dans_mot = 0;
-        }
-        i++;
-    }
-    
-    return (mots == 2) ? 1 : 0;
 }

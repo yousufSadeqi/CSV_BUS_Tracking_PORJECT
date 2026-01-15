@@ -15,6 +15,5 @@ int comparePassagersPrixDesc(const void *a, const void *b);
 
 // Fonctions utilitaires / aides 
 long unifieDateHeure(const Trajet *t); 
-int lireNomComplet(char *nom, int taille);
 
 #endif

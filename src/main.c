@@ -11,12 +11,12 @@ Paramètre : Aucun
 Postconditions : L'application s'exécute et se termine normalement sur choix utilisateur ou erreur.
 Sortie :
   - 0 si succès
-Auteur principal : Yousuf
+Auteur principal : SADEQI Muhammad Yousuf
 */
 int main() {
     Trajet *trajets = trajetsArray;    
     
-    int nbTrajets = chargerTrajets("trajets_bus.csv", trajets, MAX_TRAJETS);
+    int nbTrajets = chargerTrajets(TRAJETS_CSV_CHEMIN, trajets, MAX_TRAJETS);
 
     int choix = 1;
 
@@ -45,12 +45,12 @@ int main() {
             case 4: {
                 int numBus;
                 char nom[50];
-                char tampon[10];
+                char temp[10];
                 float prix;
 
                 printf("Numero du bus : ");
                 scanf("%d", &numBus);
-                fgets(tampon, 10, stdin); // Vider le tampon
+                fgets(temp, 10, stdin); // Vider le tampon
 
                 int idx = trouverTrajet(numBus, trajets, nbTrajets);
                 if (idx == -1) {
@@ -58,34 +58,10 @@ int main() {
                 } else {
                     int valide = 0;
                     while (!valide) {
-                        printf("Nom du passager (Prenom Nom) : ");
-                        fgets(nom, 50, stdin);
-                        
-                        // Enlever le saut de ligne
-                        int longueur = 0;
-                        while (nom[longueur] != '\0' && nom[longueur] != '\n') longueur++;
-                        if (nom[longueur] == '\n') nom[longueur] = '\0';
-                        
-                        // Compter les mots
-                        int mots = 0;
-                        int dans_mot = 0;
-                        int i = 0;
-                        while (nom[i] != '\0') {
-                            if (nom[i] != ' ') {
-                                if (!dans_mot) {
-                                    mots++;
-                                    dans_mot = 1;
-                                }
-                            } else {
-                                dans_mot = 0;
-                            }
-                            i++;
-                        }
-                        
-                        if (mots == 2) {
-                            valide = 1;
-                        } else {
-                            printf("Erreur: Veuillez entrer exactement 2 mots (Prenom Nom). Reessayez.\n");
+                        printf("Nom du passager (Nom Prenom) : ");
+                        valide = lireNomComplet(nom, 50);
+                        if (!valide) {
+                            printf("Erreur: Veuillez entrer exactement 2 mots (Nom Prenom). Reessayez.\n");
                         }
                     }
 
@@ -103,7 +79,9 @@ int main() {
             case 5: {
                 int numBus, id;
                 char nom[50];
-                float prix;
+                float prix = -1;
+                char reponse;
+                char *nomPtr = NULL;
 
                 printf("Numero du bus : ");
                 scanf("%d", &numBus);
@@ -115,20 +93,53 @@ int main() {
                     printf("ID du passager : ");
                     scanf("%d", &id);
 
-                    printf("Nouveau nom : ");
-                    printf("(Entrez '.' pour garder le meme nom) : ");
-                    scanf("%s", nom);
-                    if (strcmp(nom, ".") == 0) {
-                         modifierPassager(&trajets[idx], id, NULL, -1);
-                    } else {
-                         printf("Nouveau prix (-1 pour ne pas changer) : ");
-                         scanf("%f", &prix);
-                         modifierPassager(&trajets[idx], id, nom, prix);
+                    // Modification du nom 
+                    int valide = 0;
+                    while (!valide) {
+                        printf("Voulez-vous modifier le nom ? (o/n) : ");
+                        scanf(" %c", &reponse);
+
+                        if (reponse == 'o' || reponse == 'O') {
+                            int nomValide = 0;
+                            while (!nomValide) {
+                                printf("Nouveau nom (Nom Prenom) : ");
+                                nomValide = lireNomComplet(nom, 50);
+                                if (!nomValide) {
+                                    printf("Erreur: Veuillez entrer exactement 2 mots (Nom Prenom).\n");
+                                } else {
+                                    nomPtr = nom;
+                                }
+                            }
+                            valide = 1;
+                        } else if (reponse == 'n' || reponse == 'N') {
+                            valide = 1;
+                        } else {
+                            printf("Erreur: Veuillez entrer 'o' ou 'n'.\n");
+                        }
                     }
-                    printf("Modification effectuee.\n");
+
+                    // Modification prix 
+                    valide = 0;
+                    while (!valide) {
+                        printf("Voulez-vous modifier le prix ? (o/n) : ");
+                        scanf(" %c", &reponse);
+
+                        if (reponse == 'o' || reponse == 'O') {
+                            printf("Nouveau prix : ");
+                            scanf("%f", &prix);
+                            valide = 1;
+                        } else if (reponse == 'n' || reponse == 'N') {
+                            valide = 1;
+                        } else {
+                            printf("Erreur: Veuillez entrer 'o' ou 'n'.\n");
+                        }
+                    }
+
+                    modifierPassager(&trajets[idx], id, nomPtr, prix);
                 }
                 break;
             }
+
 
             case 6:
                 sauvegarderTrajets("sauvegarde.csv", trajets, nbTrajets);
@@ -167,19 +178,8 @@ int main() {
             }
 
             case 9: {
-                // Afficher chiffre d'affaires (simple liste)
-                int i = 0;
-                while (i < nbTrajets) {
-                    float ca = chiffreAffaires(&trajets[i]);
-                    
-                    if (ca == CA_INVALIDE) {
-                        printf("Bus %d : Calcul invalide - horaire manquant\n", trajets[i].numBus);
-                    } else {
-                        printf("Bus %d : Chiffre d'affaires = %.2f €\n", trajets[i].numBus, ca);
-                    }
-                    
-                    i++;
-                }
+                // Afficher les trajets triés par Chiffre d'Affaires
+                afficherTriParCA(trajets, nbTrajets);
                 break;
             }
 
